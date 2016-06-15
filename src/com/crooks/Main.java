@@ -40,10 +40,11 @@ public class Main {
     }
 
     public static void updateUser(Connection conn, User user) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("UPDATE usersTable SET username = ?, address=?, email=?");
+        PreparedStatement stmt = conn.prepareStatement("UPDATE usersTable SET username = ?, address=?, email=? WHERE id=?");
         stmt.setString(1, user.username);
         stmt.setString(2, user.address);
         stmt.setString(3, user.email);
+        stmt.setInt(4, user.userID);
 
         stmt.execute();
     }
