@@ -1,8 +1,10 @@
 package com.crooks;
 
+import jodd.json.JsonParser;
 import jodd.json.JsonSerializer;
 import org.h2.tools.Server;
 import spark.Spark;
+import sun.plugin2.message.Message;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -57,11 +59,49 @@ public class Main {
     public static void main(String[] args) throws SQLException {
         Server.createWebServer().start();
         Connection conn = DriverManager.getConnection("jdbc:h2:./main");
+        createTable(conn);
 
         Spark.externalStaticFileLocation("public");
+
         Spark.init();
         JsonSerializer serializer = new JsonSerializer();
+        JsonParser parser = new JsonParser();
 
+
+        Spark.get(
+                "/user",
+                (request, response) -> {
+                    ArrayList<User> userArrayList = selectUsers(conn);
+                    return serializer.serialize(userArrayList);
+                }
+        );
+        Spark.post(
+                "/user",
+                (request, response) -> {
+                    String body = request.body();
+                    User user = parser.parse(body, User.class);
+                    insertUser(conn, user);
+                    return "";
+                }
+        );
+
+        Spark.put(
+                "/user",
+                (request, response) -> {
+                    String body = request.body();
+                    User user = parser.parse(body, User.class);
+                    updateUser(conn, user);
+                    return "";
+                }
+        );
+        Spark.delete(
+                "/user/:id",
+                (request, response) -> {
+                    int userID = Integer.valueOf(request.params(":id"));
+                    deleteUser(conn, userID);
+                    return "";
+                }
+        );
 
 
     }
